@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class NewTransaction extends StatefulWidget {
   final Function addTx;
@@ -10,48 +11,75 @@ class NewTransaction extends StatefulWidget {
 }
 
 class _NewTransactionState extends State<NewTransaction> {
-  final titleController = TextEditingController();
+  final _titleController = TextEditingController();
+  final _amountController = TextEditingController();
 
-  final amountController = TextEditingController();
+  DateTime _selectedDate;
 
-  void submitValue() {
-    String enteredTitle = titleController.text;
-    double enteredAmount = double.parse(amountController.text);
-    if (enteredTitle.isEmpty || enteredAmount <= 0) {
+  void _submitValue() {
+    String enteredTitle = _titleController.text;
+    double enteredAmount = double.parse(_amountController.text);
+    if (enteredTitle.isEmpty || enteredAmount <= 0 || _selectedDate == null)  {
       return;
     }
-    widget.addTx(enteredTitle, enteredAmount);
+    widget.addTx(enteredTitle, enteredAmount, _selectedDate);
     Navigator.of(context).pop();
+  }
+  void _presentDatePicker (){
+    showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2020), lastDate: DateTime.now()).then((value) {
+
+    if(value == null){
+      return;
+    }
+    setState(() {
+      _selectedDate = value;
+    });
+    } 
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 5,
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: <Widget>[
-            TextField(
-              decoration: InputDecoration(labelText: 'Title'),
-              // onChanged: (value) => titleInput = value,
-              controller: titleController,
-              onSubmitted: (_) => submitValue(),
-            ),
-            TextField(
-              decoration: InputDecoration(labelText: 'Amount'),
-              // onChanged: (value) => amountInput = value,
-              controller: amountController,
-              keyboardType: TextInputType.number,
-              onSubmitted: (_) => submitValue(),
-            ),
-            FlatButton(
-              onPressed: submitValue,
-              child: Text('Add Transaction'),
-              textColor: Colors.purple,
-            )
-          ],
+    return SingleChildScrollView(
+          child: Card(
+        elevation: 5,
+        child: Padding(
+          padding: const EdgeInsets.only(
+          top: 10,
+          left: 10,
+          right: 10,
+          bottom:10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              TextField(
+                decoration: InputDecoration(labelText: 'Title'),
+                // onChanged: (value) => titleInput = value,
+                controller: _titleController,
+                onSubmitted: (_) => _submitValue(),
+              ),
+              TextField(
+                decoration: InputDecoration(labelText: 'Amount'),
+                // onChanged: (value) => amountInput = value,
+                controller: _amountController,
+                keyboardType: TextInputType.number,
+                onSubmitted: (_) => _submitValue(),
+              ),
+              Container(
+                height: 200,
+                child: Row(children: <Widget>[
+                  Expanded(child: Text(_selectedDate == null ? 'No Date Choosen': DateFormat.yMd().format(_selectedDate))),
+                  FlatButton(onPressed: _presentDatePicker, child: Text('Choose Date', style: TextStyle(fontWeight:FontWeight.bold),), textColor: Theme.of(context).primaryColor,)
+                ],),
+              ),
+              RaisedButton(
+                onPressed: _submitValue,
+                child: Text('Add Transaction'),
+                color: Theme.of(context).primaryColor,
+                textColor: Theme.of(context).textTheme.button.color,
+              )
+            ],
+          ),
         ),
       ),
     );
